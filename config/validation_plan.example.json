@@ -1,0 +1,42 @@
+{
+  "_notice": "ILLUSTRATIVE EXAMPLE VALUES ONLY. This plan and its acceptance criteria were invented for a synthetic demo of a generic multi-port solid-state transformer (SST) feeding an 800 V DC bus. They are NOT specifications of any real product, company, customer, or test procedure. Replace them with your own approved validation plan.",
+  "profile_name": "Illustrative 800 V DC multi-port SST design-validation plan (synthetic demo, not a real spec)",
+  "rated_power_kw": 200.0,
+  "channels": {
+    "grid_voltage_pu": { "unit": "pu", "max": 1.1 },
+    "dc_bus_voltage_v": { "unit": "V", "nominal": 800.0, "min": 760.0, "max": 840.0 },
+    "rack_power_kw": { "unit": "kW", "max": 220.0 },
+    "sic_temp_c": { "unit": "degC", "max": 125.0, "merge_gap_s": 0.5 }
+  },
+  "violation_detection": { "merge_gap_s": 0.005 },
+  "steady_state": {
+    "_help": "Efficiency is measured after the load has settled: the first settle_s of each step is ignored.",
+    "settle_s": 1.0
+  },
+  "power_balance": {
+    "_help": "Data-integrity checks on the power sensors, run in windows of window_s.",
+    "window_s": 0.5,
+    "min_power_fraction": 0.15,
+    "min_plausible_efficiency_pct": 90.0,
+    "max_plausible_efficiency_pct": 99.5,
+    "battery_idle_tolerance_kw": 1.0,
+    "healthy_grid_min_pu": 0.95
+  },
+  "regression": {
+    "_help": "A KPI counts as a regression vs the baseline run only if it got worse by more than this tolerance.",
+    "efficiency_pct_tolerance": 0.2,
+    "voltage_v_tolerance": 1.0,
+    "time_s_tolerance": 0.002,
+    "temp_c_tolerance": 2.0,
+    "slope_c_per_s_tolerance": 0.2
+  },
+  "tests": [
+    { "id": "EFF-25", "type": "efficiency", "step": 1, "description": "Efficiency at 25% rated load", "target_load_pct": 25, "min_efficiency_pct": 97.0 },
+    { "id": "EFF-50", "type": "efficiency", "step": 2, "description": "Efficiency at 50% rated load", "target_load_pct": 50, "min_efficiency_pct": 97.5 },
+    { "id": "EFF-75", "type": "efficiency", "step": 3, "description": "Efficiency at 75% rated load", "target_load_pct": 75, "min_efficiency_pct": 97.5 },
+    { "id": "EFF-100", "type": "efficiency", "step": 4, "description": "Efficiency at 100% rated load", "target_load_pct": 100, "min_efficiency_pct": 97.0 },
+    { "id": "BURST-1", "type": "load_burst", "step": 5, "description": "800 V bus response to GPU-style load bursts", "min_burst_kw": 30.0, "edge_window_s": 0.005, "max_deviation_v": 16.0, "recovery_band_v": 4.0, "max_recovery_s": 0.008 },
+    { "id": "SAG-1", "type": "grid_sag", "step": 6, "description": "Grid-sag ride-through with battery-port support", "sag_threshold_pu": 0.9, "pickup_fraction": 0.9, "min_bus_voltage_v": 760.0, "max_pickup_s": 0.02 },
+    { "id": "THERM-1", "type": "thermal", "step": 7, "description": "Thermal soak at 100% rated load", "max_temp_c": 125.0, "max_end_slope_c_per_s": 1.0 }
+  ]
+}

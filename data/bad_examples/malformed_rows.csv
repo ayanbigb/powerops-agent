@@ -1,0 +1,4 @@
+# Deliberately broken example: row 3 has too many fields.
+timestamp_s,test_step,grid_voltage_pu,grid_power_kw,battery_power_kw,rack_power_kw,dc_bus_voltage_v,sic_temp_c
+0,1,1,51,0,50,799.5,60
+0.001,1,1,51,0,50,799.5,60,99,99

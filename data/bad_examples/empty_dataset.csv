@@ -1,0 +1,2 @@
+# Deliberately broken example: header but no data.
+timestamp_s,test_step,grid_voltage_pu,grid_power_kw,battery_power_kw,rack_power_kw,dc_bus_voltage_v,sic_temp_c
