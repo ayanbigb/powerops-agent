@@ -125,6 +125,18 @@ Run the tests (no API key or network needed):
 source .venv/bin/activate && pytest
 ```
 
+### Random simulated units
+
+Unless you upload your own data, every page load (or refresh) starts with a **new random simulated unit**,
+and the **New random run** button draws another. Each one has its own losses, bus-control strength, battery
+response and ambient temperature, and about 1 in 8 has a hidden battery power-sensor fault. Over many runs,
+about half pass every test, and each test fails some of the time.
+
+The drawn parameters are written into the CSV's `# generator_config` comment, which acts as the answer key.
+They are **not** part of the metadata the agent sees, so it has to find any failure or sensor fault with its
+tools. Use the sidebar toggle to turn auto-loading off. `POST /datasets/random` (optionally with `{"seed": N}`)
+does the same through the API.
+
 ### Using the app
 
 1. **1 · Load runs**: click **Load demo pair** (rev-A baseline + rev-B candidate). You can also generate a
@@ -297,7 +309,7 @@ powerops-agent/
 │   ├── numbers_check.py         Flags numbers in the answer that no tool produced
 │   └── report.py                Draft validation report with sign-off block
 ├── scripts/generate_synthetic.py
-└── tests/                       pytest suite (108 tests)
+└── tests/                       pytest suite (112 tests)
 ```
 
 | Method | Path | Purpose |
@@ -312,7 +324,7 @@ powerops-agent/
 
 ## 8. Tests
 
-`pytest` runs 108 tests in a few seconds, with no network access:
+`pytest` runs 112 tests in a few seconds, with no network access:
 
 - **Analysis:** each evaluator is checked against hand-built signals with known answers. For example, a
   10 V dip decaying with a 2 ms time constant must recover in exactly 2 ms, and a 50 kW load with 1 kW of

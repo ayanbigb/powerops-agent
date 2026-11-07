@@ -32,7 +32,7 @@ EXAMPLE_QUESTIONS = [
 st.set_page_config(page_title="PowerOps Agent", layout="wide")
 state = st.session_state
 for key, default in (("candidate", None), ("baseline", None), ("messages", []), ("overview", None),
-                     ("csv", {}), ("pending_question", None)):
+                     ("csv", {}), ("pending_question", None), ("auto_random_done", False)):
     state.setdefault(key, default)
 
 
@@ -96,6 +96,9 @@ with st.sidebar:
                          hide_index=True)
         else:
             st.write(plan_err)
+    auto_random = st.toggle("New random simulated run on each page load", value=True,
+                            help="Refreshing the page starts a new session and loads a different random unit, "
+                                 "unless you upload your own data.")
     if st.button("Clear chat", width="stretch"):
         state.messages = []
 
@@ -110,6 +113,15 @@ st.warning(
 if health_err:
     st.stop()
 
+# A new browser session (e.g. a page refresh) gets a fresh random unit, unless the user turned that off.
+if auto_random and state.candidate is None and not state.auto_random_done:
+    state.auto_random_done = True
+    payload, err = api("POST", "/datasets/random")
+    if err:
+        st.error(err)
+    else:
+        set_slot("candidate", payload)
+
 tab_data, tab_chat = st.tabs(["1 · Load runs", "2 · Validate with the agent"])
 
 # --------------------------------------------------------------------------- data tab
@@ -122,7 +134,14 @@ with tab_data:
         else:
             set_slot("baseline", pair["baseline"])
             set_slot("candidate", pair["candidate"])
-    st.caption("Both runs are synthetic and follow the same 8-step validation sequence.")
+    if st.button("New random run", help="A unit with randomly drawn behaviour; may pass, fail, or have a sensor fault."):
+        payload, err = api("POST", "/datasets/random")
+        if err:
+            st.error(err)
+        else:
+            set_slot("candidate", payload)
+    st.caption("All runs are synthetic and follow the same 8-step validation sequence. A random run is a new unit "
+               "every time: its parameters are hidden from the agent, so it has to find any failures itself.")
 
     left, right = st.columns(2, gap="large")
     with left:

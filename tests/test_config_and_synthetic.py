@@ -97,3 +97,34 @@ def test_grid_sag_is_where_the_plan_expects_it():
 def test_invalid_generator_settings_raise(cfg):
     with pytest.raises(ValueError):
         generate_synthetic_run(cfg)
+
+
+# ----------------------------------------------------------------- random simulated units
+def test_random_config_is_reproducible_with_a_seed_and_new_without():
+    from powerops.synthetic import random_config
+
+    assert random_config(7) == random_config(7)
+    assert random_config(7).custom_revision != random_config(8).custom_revision
+    a, b = random_config(), random_config()
+    assert a.seed != b.seed  # no seed -> a new unit every call (collision chance 1e-6)
+
+
+def test_random_units_vary_between_pass_and_fail(plan):
+    from powerops import analysis
+    from powerops.data_io import load_csv
+    from powerops.synthetic import random_config
+
+    failed = [analysis.run_validation_plan(load_csv(synthetic_csv_bytes(random_config(s))).df, plan)["summary"]["failed_tests"]
+              for s in range(12)]
+    assert any(not f for f in failed) and any(f for f in failed)
+
+
+def test_random_parameters_are_hidden_from_run_metadata():
+    from powerops.data_io import load_csv
+    from powerops.synthetic import random_config
+
+    cfg = random_config(123)
+    ds = load_csv(synthetic_csv_bytes(cfg))
+    assert ds.label == "SST-SIM-000123 random-sim #123"
+    assert set(ds.metadata) == {"unit_id", "revision", "test_sequence"}  # no device parameters, no fault flag
+    assert str(cfg.custom_revision.fixed_loss_kw) not in str(ds.info())

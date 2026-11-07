@@ -5,3 +5,4 @@ __pycache__/
 .env
 reports/
 .DS_Store
+.claude/

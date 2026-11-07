@@ -107,3 +107,15 @@ def test_health_plan_and_broken_config(client, monkeypatch, tmp_path):
     monkeypatch.setenv("POWEROPS_PLAN_PATH", str(bad))
     res = client.get("/plan")
     assert res.status_code == 500 and "not valid JSON" in res.json()["detail"]
+
+
+def test_random_dataset_endpoint(client):
+    a = client.post("/datasets/random").json()
+    b = client.post("/datasets/random").json()
+    assert a["is_synthetic"] and a["metadata"]["revision"].startswith("random-sim")
+    assert a["name"] != b["name"]  # a new unit each time
+    seeded = [client.post("/datasets/random", json={"seed": 5}).json() for _ in range(2)]
+    assert seeded[0]["preview"] == seeded[1]["preview"] and "seed5" in seeded[0]["name"]
+    report = client.post("/chat", json={"dataset_id": a["dataset_id"], "question": "Generate the validation report",
+                                        "mode": "demo"}).json()
+    assert report["mode"] == "demo" and report["unverified_numbers"] == []

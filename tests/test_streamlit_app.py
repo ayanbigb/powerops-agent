@@ -26,6 +26,8 @@ def backend(monkeypatch):
 def test_ui_demo_pair_then_validation_report(backend):
     at = AppTest.from_file(APP, default_timeout=60).run()
     assert not at.exception and any("Backend connected" in s.value for s in at.success)
+    # A new session starts with a fresh random simulated unit already loaded.
+    assert at.session_state["candidate"]["metadata"]["revision"].startswith("random-sim")
 
     at.radio[0].set_value("Demo - no API key needed").run()
     next(b for b in at.button if b.label.startswith("Load demo pair")).click().run()

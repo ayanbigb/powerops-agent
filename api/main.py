@@ -27,7 +27,7 @@ from powerops.agent import DEFAULT_MODEL, AgentResult, run_agent
 from powerops.config import ConfigError, load_plan
 from powerops.data_io import DataValidationError, Dataset, load_csv
 from powerops.plots import PLOT_TYPES, generate_plots
-from powerops.synthetic import SyntheticConfig, synthetic_csv_bytes
+from powerops.synthetic import SyntheticConfig, random_config, synthetic_csv_bytes
 
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")  # OPENAI_API_KEY etc., if a .env file exists
 
@@ -158,6 +158,20 @@ class SyntheticRequest(BaseModel):
 def create_synthetic_dataset(req: SyntheticRequest):
     dataset_id, ds = _synthetic(req.revision, req.seed, req.battery_sensor_fault)
     return dataset_payload(dataset_id, ds)
+
+
+class RandomRequest(BaseModel):
+    seed: int | None = Field(None, ge=0, description="Omit for a brand-new random unit; give a seed to reproduce one")
+
+
+@app.post("/datasets/random")
+def create_random_dataset(req: RandomRequest | None = None):
+    """A simulated run of a randomly behaving unit (new device parameters, sometimes a hidden sensor fault)."""
+    cfg = random_config(req.seed if req else None)
+    csv_bytes = synthetic_csv_bytes(cfg)
+    # The file name gives nothing away about faults: the agent has to find them with its tools.
+    ds = load_csv(csv_bytes, name=f"SYNTHETIC_SST_random_seed{cfg.seed}.csv")
+    return dataset_payload(store.add(ds, csv_bytes), ds)
 
 
 @app.post("/datasets/demo-pair")
